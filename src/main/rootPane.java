@@ -5,41 +5,12 @@ import java.sql.SQLException;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javaClass.*;
+import javax.swing.JOptionPane;
 
 public class rootPane extends javax.swing.JFrame {
 
     private final classUsuarios user;
-    
-    public rootPane() {
-        initComponents();
-        this.setLocationRelativeTo(null);
-        this.setDefaultCloseOperation(3);
-        user = new classUsuarios();
-        
-        cargarComboBox();
-    }
-    
-    public void asignar(){
-        user.setId(Integer.parseInt(id.getText()));
-        user.setNombre(nombre.getText());
-        user.setApellido(apellido.getText());
-        user.setCorreo(correo.getText());
-        user.setFecha(fecha.getText());
-        user.setGenero(methodsSQL.getExecuteInt("SELECT id FROM generos WHERE genro = ? ", genero.getSelectedItem().toString()));
-    }
-    
-    public void cargarComboBox(){
-        try {
-            ResultSet rs = methodsSQL.getExecute("SELECT genero FROM generos");
-            while(rs.next())
-            {
-                genero.addItem(rs.getString(1));
-            }
-                } catch (SQLException ex) {
-            Logger.getLogger(rootPane.class.getName()).log(Level.SEVERE, null, ex);
-        }
-    }
-
+    private String query;
 
     @SuppressWarnings("unchecked")
     // <editor-fold defaultstate="collapsed" desc="Generated Code">//GEN-BEGIN:initComponents
@@ -69,6 +40,7 @@ public class rootPane extends javax.swing.JFrame {
         jLabel5 = new javax.swing.JLabel();
         jLabel6 = new javax.swing.JLabel();
         fecha = new javax.swing.JTextField();
+        error = new javax.swing.JLabel();
 
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
 
@@ -83,6 +55,11 @@ public class rootPane extends javax.swing.JFrame {
 
             }
         ));
+        tabla.addMouseListener(new java.awt.event.MouseAdapter() {
+            public void mouseClicked(java.awt.event.MouseEvent evt) {
+                tablaMouseClicked(evt);
+            }
+        });
         jScrollPane1.setViewportView(tabla);
 
         jLabel7.setText("Imagen:");
@@ -92,10 +69,25 @@ public class rootPane extends javax.swing.JFrame {
         path.setFocusable(false);
 
         insertar.setText("Insertar");
+        insertar.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                insertarActionPerformed(evt);
+            }
+        });
 
         modificar.setText("Modificar");
+        modificar.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                modificarActionPerformed(evt);
+            }
+        });
 
         eliminar.setText("Eliminar");
+        eliminar.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                eliminarActionPerformed(evt);
+            }
+        });
 
         consultar.setText("Consultar");
         consultar.addActionListener(new java.awt.event.ActionListener() {
@@ -176,9 +168,12 @@ public class rootPane extends javax.swing.JFrame {
                                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, 46, Short.MAX_VALUE)
                                 .addComponent(jScrollPane1, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
                             .addGroup(layout.createSequentialGroup()
-                                .addComponent(jLabel6)
-                                .addGap(3, 3, 3)
-                                .addComponent(fecha, javax.swing.GroupLayout.PREFERRED_SIZE, 126, javax.swing.GroupLayout.PREFERRED_SIZE)
+                                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                                    .addGroup(layout.createSequentialGroup()
+                                        .addComponent(jLabel6)
+                                        .addGap(3, 3, 3)
+                                        .addComponent(fecha, javax.swing.GroupLayout.PREFERRED_SIZE, 126, javax.swing.GroupLayout.PREFERRED_SIZE))
+                                    .addComponent(error, javax.swing.GroupLayout.PREFERRED_SIZE, 659, javax.swing.GroupLayout.PREFERRED_SIZE))
                                 .addGap(0, 0, Short.MAX_VALUE)))))
                 .addContainerGap())
         );
@@ -230,27 +225,234 @@ public class rootPane extends javax.swing.JFrame {
                     .addComponent(fecha, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                     .addGroup(layout.createSequentialGroup()
-                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, 13, Short.MAX_VALUE)
-                        .addComponent(jScrollPane1, javax.swing.GroupLayout.PREFERRED_SIZE, 159, javax.swing.GroupLayout.PREFERRED_SIZE)
-                        .addContainerGap())
-                    .addGroup(layout.createSequentialGroup()
                         .addGap(59, 59, 59)
                         .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                             .addComponent(jLabel7)
                             .addComponent(buscar))
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                        .addComponent(path, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                        .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))))
+                        .addComponent(path, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
+                    .addGroup(layout.createSequentialGroup()
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                        .addComponent(jScrollPane1, javax.swing.GroupLayout.PREFERRED_SIZE, 159, javax.swing.GroupLayout.PREFERRED_SIZE)))
+                .addGap(18, 18, 18)
+                .addComponent(error, javax.swing.GroupLayout.DEFAULT_SIZE, 12, Short.MAX_VALUE)
+                .addContainerGap())
         );
 
         pack();
     }// </editor-fold>//GEN-END:initComponents
 
     private void consultarActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_consultarActionPerformed
-
+        mostrar();
+        error.setText(user.getError());
     }//GEN-LAST:event_consultarActionPerformed
 
+    private void insertarActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_insertarActionPerformed
+        if(!camposVacios()){
+            if(!exists(Integer.parseInt(id.getText()))){
+                asignar();
+                if(user.insert())
+                    mostrarMensaje(2);
+                else
+                    mostrarMensaje(3);
+            }else{
+                mostrarMensaje(1);
+            }
+        }
+        else
+            mostrarMensaje(0);
+        error.setText(user.getError());
+        mostrar();
+    }//GEN-LAST:event_insertarActionPerformed
 
+    private void eliminarActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_eliminarActionPerformed
+        if(!campoVacio(id.getText())){
+            user.setId(Integer.parseInt(id.getText()));
+            if(exists(user.getId())){
+                if(user.delete())
+                    mostrarMensaje(2);
+                else
+                    mostrarMensaje(3);
+            }
+            else
+                mostrarMensaje(4);
+        }
+        else
+            mostrarMensaje(0);
+        mostrar();
+    }//GEN-LAST:event_eliminarActionPerformed
+
+    private void modificarActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_modificarActionPerformed
+        if(!camposVacios())
+            update();      
+        else
+            fill();
+        error.setText(user.getError());
+        mostrar();
+    }//GEN-LAST:event_modificarActionPerformed
+
+    private void tablaMouseClicked(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_tablaMouseClicked
+        try {
+            int i = tabla.getSelectedRow();
+            query = "SELECT nombre, apellido, id_genero, fecha_nacimiento, correo FROM usuarios WHERE id = ?";
+            ResultSet rs = methodsSQL.getExecute(query, tabla.getValueAt(i, 0));
+            if(rs.next())
+            {
+                user.setNombre(rs.getString(1));
+                user.setApellido(rs.getString(2));
+                user.setGenero(rs.getInt(3));
+                user.setFecha(rs.getString(4));
+                user.setCorreo(rs.getString(5));
+            }
+            id.setText(tabla.getValueAt(i, 0).toString());
+            nombre.setText(user.getNombre());
+            apellido.setText(user.getApellido());
+            genero.setSelectedIndex(user.getGenero()-1);
+            fecha.setText(user.getFecha());
+            correo.setText(user.getCorreo());
+        } catch (SQLException ex) {
+            Logger.getLogger(rootPane.class.getName()).log(Level.SEVERE, null, ex);
+            System.out.println(ex.getMessage());
+        }
+    }//GEN-LAST:event_tablaMouseClicked
+
+    public rootPane() {
+        initComponents();
+        this.setLocationRelativeTo(null);
+        this.setDefaultCloseOperation(3);
+        user = new classUsuarios();
+        methodsSQL.setUser(user);
+        
+        cargarComboBox();
+        error.setText(user.getError());
+    }
+    
+    public void asignar(){
+        user.setId(Integer.parseInt(id.getText()));
+        user.setNombre(nombre.getText());
+        user.setApellido(apellido.getText());
+        user.setCorreo(correo.getText());
+        user.setFecha(fecha.getText());
+        user.setGenero(methodsSQL.getExecuteInt("SELECT id FROM generos WHERE genero = ? ", genero.getSelectedItem().toString()));
+    }
+    
+    public void cargarComboBox(){
+        try {
+            ResultSet rs = methodsSQL.getExecute("SELECT genero FROM generos");
+            while(rs.next())
+            {
+                genero.addItem(rs.getString(1));
+            }
+                } catch (SQLException ex) {
+            Logger.getLogger(rootPane.class.getName()).log(Level.SEVERE, null, ex);
+        }
+        genero.setSelectedIndex(-1);
+    }
+    
+    public boolean campoVacio(String text){
+        text=text.replaceAll(" ", "");
+        if(text.isEmpty() || text.length() == 0)
+            return true;
+        else
+            return false;
+    }
+
+    public boolean camposVacios(){
+        if(campoVacio(id.getText()) || campoVacio(nombre.getText()) ||
+                campoVacio(apellido.getText()) || campoVacio(correo.getText()) || 
+                campoVacio(fecha.getText()) || genero.getSelectedIndex() == -1 )
+            return true;
+        else
+            return false;
+    }
+    
+    public boolean exists(Integer cod){
+        return methodsSQL.exists("SELECT * FROM usuarios WHERE id = ?", cod);
+    }
+    
+    public void mostrarMensaje(int value){
+        switch(value){
+            case 0:
+                JOptionPane.showMessageDialog(this, "Campos vacios","Advertencia",JOptionPane.WARNING_MESSAGE);
+                break;
+            case 1:
+                JOptionPane.showMessageDialog(this, "Ese id ya exciste","Advertencia",JOptionPane.WARNING_MESSAGE);
+                break;
+            case 2:
+                JOptionPane.showMessageDialog(this, "Exito al ejecutar","Mensaje",JOptionPane.INFORMATION_MESSAGE);
+                break;
+            case 3:
+                JOptionPane.showMessageDialog(this, "Error al ejecutar","Mensaje",JOptionPane.ERROR_MESSAGE);
+                break;
+            case 4:
+                JOptionPane.showMessageDialog(this, "Ese id no excister","Advertencia",JOptionPane.WARNING_MESSAGE);
+                break;
+        }
+    }
+    
+    public void mostrar(){
+        query="select a.id, a.nombre, a.apellido, g.genero, a.fecha_nacimiento from usuarios a, generos g where a.id_genero = g.id";
+        tabla.setModel(methodsSQL.getTableModel(query, "Id", "Nombre", "Apellido", "Genero", "Fecha"));
+    }
+    
+    public void fill(){
+        if(campoVacio(id.getText()))
+            JOptionPane.showMessageDialog(this, "Ingrese el codigo por avor","Advertencia",JOptionPane.WARNING_MESSAGE);
+        else{
+            user.setId(Integer.parseInt(id.getText()));
+            if(exists(user.getId()))
+            {
+                try {
+                    query = "SELECT id, nombre, apellido, id_genero, fecha_nacimiento, correo FROM usuarios WHERE id = ?";
+                    ResultSet rs = methodsSQL.getExecute(query, user.getId());
+                    if(rs.next())
+                    {
+                        user.setId(rs.getInt(1));
+                        user.setNombre(rs.getString(2));
+                        user.setApellido(rs.getString(3));
+                        user.setGenero(rs.getInt(4));
+                        user.setFecha(rs.getString(5));
+                        user.setCorreo(rs.getString(6));
+                    }
+
+                    if(campoVacio(nombre.getText()))
+                        nombre.setText(user.getNombre());
+                    if(campoVacio(apellido.getText()))
+                        apellido.setText(user.getApellido());
+                    if(genero.getSelectedIndex() == -1)
+                        genero.setSelectedIndex(user.getGenero()-1);
+                    if(campoVacio(fecha.getText()))
+                        fecha.setText(user.getFecha());
+                    if(campoVacio(correo.getText()))
+                        correo.setText(user.getCorreo());
+                    
+                    update();
+                    mostrar();
+
+                } catch (SQLException ex) {
+                    Logger.getLogger(rootPane.class.getName()).log(Level.SEVERE, null, ex);
+                    System.out.println(ex.getMessage());
+                }
+            }
+            else
+                JOptionPane.showMessageDialog(this, "Ese codigo no existe","Advertencia",JOptionPane.WARNING_MESSAGE);
+        }
+    }
+    
+    public void update(){
+        user.setId(Integer.parseInt(id.getText()));
+        if(exists(user.getId()))
+        {
+            asignar();
+            if(user.update())
+                mostrarMensaje(2);
+            else
+                mostrarMensaje(3);       
+        }
+        else
+            mostrarMensaje(4);
+    }
+    
     public static void main(String args[]) {
         
         //<editor-fold defaultstate="collapsed" desc=" Look and feel setting code (optional) ">
@@ -290,6 +492,7 @@ public class rootPane extends javax.swing.JFrame {
     private javax.swing.JButton consultar;
     private javax.swing.JTextField correo;
     private javax.swing.JButton eliminar;
+    private javax.swing.JLabel error;
     private javax.swing.JTextField fecha;
     private javax.swing.JComboBox<String> genero;
     private javax.swing.JTextField id;

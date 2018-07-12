@@ -8,6 +8,7 @@ public class classUsuarios {
     private String correo;
     private String fecha;
     private Integer genero;
+    private String error;
 
     //<editor-fold defaultstate="collapsed" desc="Getter and Setter">
     public Integer getId() {
@@ -58,9 +59,24 @@ public class classUsuarios {
         this.genero = genero;
     }
     
+    public String getError() {
+        return error;
+    }
+
+    public void setError(String error) {
+        this.error = error;
+    }
     //</editor-fold>
     
     public boolean insert(){
-        return methodsSQL.execute("INSERT INTO usuarios VALUES ()", nombre, apellido, correo, fecha, genero);
+        return methodsSQL.execute("INSERT INTO usuarios VALUES ( ?, ?, ?, ?, ?, ?, ?)", id, nombre, apellido, genero, fecha, null, correo);
+    }
+    
+    public boolean delete(){
+        return methodsSQL.execute("DELETE FROM usuarios WHERE id = ? ", id);
+    }
+    
+    public boolean update(){
+        return methodsSQL.execute("UPDATE usuarios SET nombre = ?, apellido = ?, id_genero = ?, fecha_nacimiento = ?, correo = ? WHERE id = ?", nombre, apellido, genero, fecha, correo, id);
     }
 }

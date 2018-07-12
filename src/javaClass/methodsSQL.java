@@ -4,11 +4,19 @@ import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 import javax.swing.table.DefaultTableModel;
 
 public class methodsSQL {   
+    
+    private static classUsuarios user;
+
+    public static classUsuarios getUser() {
+        return user;
+    }
+
+    public static void setUser(classUsuarios user) {
+        methodsSQL.user = user;
+    }
 
     static void prepare(PreparedStatement cmd, Object... values) throws SQLException {
         for (int i = 0; i < values.length; i++)
@@ -22,7 +30,8 @@ public class methodsSQL {
             command.execute();
             return true;
         } catch(SQLException e) { 
-            System.out.println(""+e.getMessage());
+            System.out.println(e.getMessage());
+            user.setError(e.getMessage());
             return false; 
         }
     }
@@ -35,7 +44,8 @@ public class methodsSQL {
             prepare(prepStmt,values);
             rs = prepStmt.executeQuery();
         } catch (SQLException ex) {
-            Logger.getLogger(methodsSQL.class.getName()).log(Level.SEVERE, null, ex);
+            System.out.println(ex.getMessage());
+            user.setError(ex.getMessage());
         }
         return rs;
     }
@@ -51,7 +61,8 @@ public class methodsSQL {
             if(rs.next())
                 i=rs.getInt(1);
         } catch (SQLException ex) {
-            Logger.getLogger(methodsSQL.class.getName()).log(Level.SEVERE, null, ex);
+            System.out.println(ex.getMessage());
+            user.setError(ex.getMessage());
         }
         return i;
     }
@@ -63,8 +74,8 @@ public class methodsSQL {
             if(rs.next())
                 cod = rs.getObject(1);
         } catch (SQLException ex) {
-            Logger.getLogger(methodsSQL.class.getName()).log(Level.SEVERE, null, ex);
             System.out.println(ex.getMessage());
+            user.setError(ex.getMessage());
         }
         if(cod == null)
             return false;
@@ -88,7 +99,8 @@ public class methodsSQL {
                 modelo.addRow(fila);
             }
         } catch (SQLException ex) {
-            Logger.getLogger(methodsSQL.class.getName()).log(Level.SEVERE, null, ex);
+            System.out.println(ex.getMessage());
+            user.setError(ex.getMessage());
         }        
         return modelo;
     }
